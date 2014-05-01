@@ -1,0 +1,19 @@
+{
+    "name": "adrotec/breeze.server.php",
+    "description": "Breeze JS support for PHP applications",
+    "keywords": ["breeze", "doctrine", "api", "rest", "odata"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Muhammad Safraz Razik",
+            "email": "mr.safraz@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "autoload": {
+        "psr-0": { "BreezeJs": "src/" }
+    },
+    "minimum-stability": "dev"
+}
