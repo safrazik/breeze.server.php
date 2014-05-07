@@ -67,8 +67,14 @@ class OdataQueryBuilderWrapper {
 
     // Temporary workaround for virtual foreign keys to work
     private function parseSystemQueryValue($value) {
-        $value = preg_replace('/(.+?)Id([^A-Za-z0-9])/', '$1/id$2', $value);
+        $value = $this->replaceForeignKeyFields($value);
         return $value;
+    }
+    
+    private function replaceForeignKeyFields($value){
+        $value = preg_replace('/(.+?)Id([^A-Za-z0-9])/', '$1/id$2', $value);
+        $value = preg_replace('/(.+?)Id$/', '$1/id$2', $value);
+        return $value;        
     }
 
     private function invalid($message) {
@@ -126,12 +132,15 @@ class OdataQueryBuilderWrapper {
         $internalFilterInfo = ExpressionParser2::parseExpression2(
                         $filter, $resourceType
                         , new CallbackExpressionProvider('$ex->'));
-
+                
+        
         $ex = new DoctrineExpression();
         $ex->setQueryBuilder($this->queryBuilder);
         $rootAlias = $this->getRootAlias();
         $ex->setAlias($rootAlias);
         $exprStr = $internalFilterInfo->getExpressionAsString() . ';';
+
+//        $exprStr = $this->replaceForeignKeyFields($exprStr);
 
         $exprStr = str_replace(array("'\'"), array("'\\\'"), $exprStr);
 
@@ -167,6 +176,8 @@ class OdataQueryBuilderWrapper {
 
     public function addOrderBy($orderby) {
 
+        $orderby = $this->parseSystemQueryValue($orderby);
+        
         $expr = explode(',', $orderby);
 
         $orderBy = array();

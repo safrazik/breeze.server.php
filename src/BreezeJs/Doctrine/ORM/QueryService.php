@@ -19,44 +19,20 @@ class QueryService {
     }
 
     public function getQueryResult($class, $params) {
-        if ($params instanceof \Traversable || $params instanceof \ArrayAccess) {
-            
-        }
+        
         if (!($params instanceof OdataParameters)) {
             $params = OdataParameters::parse($params);
         }
 
-//        print_r($params);
-//        exit;
-
         $repository = $this->entityManager->getRepository($class);
         $queryBuilder = $repository->createQueryBuilder('X');
-
-//        print_r($queryBuilder->getRootEntities());
-//        print_r($queryBuilder->getRootAliases());
-//        exit;
-//        $queryBuilder = 
-//                OdataQueryBuilder::applyParameters($queryBuilder, $params);
 
         $odataBuilder = new OdataQueryBuilderWrapper($queryBuilder);
         $odataBuilder->applyOdataParameters($params);
 
-
-//        $odataBuilder
-//                ->addExpand('branchCourse/course')
-//                ->addFilter('branchCourse/course/code eq \'RY\'')
-//                ;
-//        echo '<html><head></head><body>';
         if ($params->inlinecount) {
 //            $count = $odataBuilder->getInlineCount();
-//            echo 'INline: ' . $count . '<br>';
-//            exit;
         }
-
-//        $odataBuilder->addFilter('serialNo eq 9');
-//                print_r($queryBuilder->getParameters());
-//        echo $queryBuilder->getDQL(); exit;
-
 
         $query = $queryBuilder->getQuery();
 

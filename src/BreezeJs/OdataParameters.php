@@ -16,7 +16,6 @@ class OdataParameters {
     private static $systemQueryOptions = array(self::PARAM_EXPAND, self::PARAM_FILTER,
         self::PARAM_FORMAT, self::PARAM_INLINECOUNT, self::PARAM_ORDERBY,
         self::PARAM_SELECT, self::PARAM_SKIP, self::PARAM_TOP);
-    
     public $skip;
     public $top;
     public $expand;
@@ -27,14 +26,20 @@ class OdataParameters {
     public $select;
 
     /**
-     * @param mixed $url
+     * @param mixed $params
      * @return OdataParameters
      */
-    static public function parse($url) {
-        $params = $_GET; // @TODO change
+    static public function parse($params) {
+        if ($params instanceof \Traversable || is_array($params)) {
+            
+        }
+        else if(is_string($params)){
+            parse_str($params, $output);
+            $params = $output;
+        }
         $op = new self();
-        foreach($params as $name => $value){
-            if(!in_array($name, self::$systemQueryOptions)){
+        foreach ($params as $name => $value) {
+            if (!in_array($name, self::$systemQueryOptions)) {
                 continue;
             }
             self::apply($op, $name, $value);
@@ -69,7 +74,7 @@ class OdataParameters {
                 $op->top = $value;
                 return;
         }
-        throw new \Exception('Unsupported System Query Option "'.$name.'"');
+        throw new \Exception('Unsupported System Query Option "' . $name . '"');
     }
 
 }
