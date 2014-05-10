@@ -1,6 +1,6 @@
 {
     "name": "adrotec/breeze.server.php",
-    "description": "Breeze JS support for PHP applications",
+    "description": "Breeze JS support for Symfony 2 or any other PHP 5.3+ application",
     "keywords": ["breeze", "doctrine", "api", "rest", "odata"],
     "license": "MIT",
     "authors": [
@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php": ">=5.3.2"
+        "php": ">=5.3.2",
+        "jms/serializer": "~0.13"
     },
     "autoload": {
         "psr-0": {
