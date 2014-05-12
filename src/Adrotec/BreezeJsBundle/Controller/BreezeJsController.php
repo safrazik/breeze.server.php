@@ -11,7 +11,8 @@ use Adrotec\BreezeJs\Serializer\MetadataInterceptor;
 class BreezeJsController extends Controller {
 
     public function getClientClasses() {
-        throw new \Exception('getClientClasses method should be implemented by sub classes');
+        //throw new \Exception('getClientClasses method should be implemented by sub classes');
+        return null;
     }
 
     public function apiAction($route) {

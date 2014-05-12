@@ -18,7 +18,18 @@ To see these features in action, please see the [NorthBreeze sample](https://git
 
 ## Usage
 
+
 ### Basic Usage
+
+using composer
+
+```js
+    "require": {
+        "jms/serializer": "0.16.0",
+        "doctrine/orm": "v2.4.2",
+        "adrotec/breeze.server.php": "dev-master"
+    }
+```
 
 ```php
 
@@ -72,6 +83,54 @@ class Controller {
         $params = $_GET;
         $response = $this->getDispatcher()->getQueryResults('Acme\Entity\Customer', $params);
         return $this->sendResponse($response);
+    }
+}
+
+```
+
+
+### With Symfony 2?
+
+update composer.json
+
+```js
+"require": {
+    ...
+    "doctrine/orm": "2.4.*",
+    "doctrine/doctrine-bundle": "1.2.*",
+    "jms/serializer-bundle": "0.13.*",
+    "adrotec/breeze.server.php": "dev-master",
+    ...
+}
+```
+
+add routing configuration
+```yml
+# app/config/routing.yml
+api:
+    path:      /api/{route}
+    defaults:  { _controller: AcmeApiBundle:Api:api }
+```
+
+```php
+
+namespace Acme\ApiBundle\Controller;
+
+use Adrotec\BreezeJsBundle\Controller\BreezeJsController;
+
+class ApiController extends BreezeJsController {
+    // limit the api to certain classes.
+    // if you want to include all classes from all the enabled bundles, return null from this method
+    public function getClientClasses(){
+        return array(
+            'Acme\ECommerceBundle\Entity\Customer',
+            'Acme\ECommerceBundle\Entity\Order',
+            'Acme\ECommerceBundle\Entity\Payment'
+        );
+    }
+    
+    public function apiAction($route){
+        return parent::apiAction($route);
     }
 }
 
