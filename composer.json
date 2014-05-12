@@ -15,8 +15,7 @@
     },
     "autoload": {
         "psr-0": {
-            "BreezeJs": "src/",
-            "BreezeJsBundle": "src/"
+            "Adrotec": "src/"
         }
     },
     "minimum-stability": "dev"
