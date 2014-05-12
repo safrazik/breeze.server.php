@@ -14,7 +14,7 @@ This project is a PHP library that facilitates building [Breeze](http://www.bree
 - Serializes query results to [JSON](http://www.json.org/) with [JMSSerializer](http://jmsyst.com/libs/serializer)
 - Handles saving Breeze payloads in Doctrine
 
-To see these features in action, please see the [NorthBreeze sample](https://github.com/Breeze/breeze.js.samples/tree/master/java/NorthBreeze).
+TODO: add examples
 
 ## Usage
 
