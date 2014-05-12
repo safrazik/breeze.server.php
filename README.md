@@ -51,6 +51,13 @@ class Controller {
     }
 
     public function Metadata(){
+        // limit the api to certain classes. If you want to expose all classes 
+        // from the entity manager, pass null for $classes parameter;
+        $classes = array(
+            'Acme\Entity\Customer',
+            'Acme\Entity\Order',
+            'Acme\Entity\Payment'
+        );
         $interceptor = new MetadataInterceptor($serializer);
         $response = $this->getDispatcher()->getMetadata($classes, $interceptor);
         return $this->sendResponse($response);
