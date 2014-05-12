@@ -2,32 +2,19 @@
 
 namespace Adrotec\BreezeJs\Metadata;
 
-use JMS\Serializer\Annotation\ExclusionPolicy;
-use JMS\Serializer\Annotation\Exclude;
-use JMS\Serializer\Annotation\SerializedName;
+use JMS\Serializer\Annotation as Serializer;
 
 /**
- * @ExclusionPolicy("none")	
+ * @Serializer\ExclusionPolicy("none")	
  */
 class Property {
-    
-    /**
-     * @SerializedName("name")
-     */
+
     public $name;
-
-    /**
-     * @SerializedName("nameOnServer")
-     */
     public $nameOnServer;
-
-    /**
-     * @SerializedName("validators")
-     */
     public $validators;
 
     /**
-     * @Exclude
+     * @Serializer\Exclude
      */
     public $structuralType;
 
