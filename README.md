@@ -39,16 +39,29 @@ using composer
 
 use Adrotec\BreezeJs\Serializer\MetadataInterceptor;
 use Adrotec\BreezeJs\Doctrine\ORM\Dispatcher;
+use Adrotec\BreezeJs\Serializer\SerializerBuilder;
+use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\EntityManager;
 
 class Controller {
     protected function getSerializer(){
-        // get/create the serializer instace
-        /* @var $serializer \JMS\Serializer\Serializer */
+        $serializer = SerializerBuilder::create($this->getEntityManager())
+                      ->build();
         return $serializer;
     }
     protected function getEntityManager(){
-        // get/create the Entity Manager instance
-        /* @var $entityManager \Doctrine\ORM\EntityManager */
+        // http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/tutorials/getting-started.html
+        $isDevMode = true;
+        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__."/src"), $isDevMode);
+
+        // database configuration parameters
+        $conn = array(
+            'driver' => 'pdo_sqlite',
+            'path' => __DIR__ . '/db.sqlite',
+        );
+
+        $entityManager = EntityManager::create($conn, $config);
+
         return $entityManager;
     }
     protected function getDispatcher(){
