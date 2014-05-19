@@ -34,7 +34,7 @@ class Dispatcher {
         }
         foreach ($classes as $class) {
             if($class instanceof ClassMetadata){
-                $refl = $className->getReflectionClass();
+                $refl = $class->getReflectionClass();
             }
             else {
                 $refl = new \ReflectionClass($this->getClass($class));
