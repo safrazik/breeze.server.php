@@ -68,8 +68,18 @@ class MetadataBuilder {
         $metadata->structuralTypes = $structuralTypes;
         $metadata->resourceEntityTypeMap = $resourceEntityTypeMap;
 
+
+
+
+
         return $metadata;
+
+
+
     }
+
+
+
 
     function getNamespace(\ReflectionClass $class) {
         $namespace = null;

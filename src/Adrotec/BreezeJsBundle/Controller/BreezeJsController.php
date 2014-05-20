@@ -6,7 +6,11 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 use Adrotec\BreezeJs\Doctrine\ORM\Dispatcher;
 use Symfony\Component\HttpFoundation\Response;
-use Adrotec\BreezeJs\Serializer\MetadataInterceptor;
+use Adrotec\BreezeJs\MetadataInterceptor;
+use Adrotec\BreezeJs\Serializer\MetadataInterceptor as SerializerInterceptor;
+use Adrotec\BreezeJs\Validator\ValidatorInterceptor;
+
+//use Symfony\Component\Validator\Validator;
 
 class BreezeJsController extends Controller {
 
@@ -24,9 +28,12 @@ class BreezeJsController extends Controller {
         $response = null;
         /* @var $serializer \JMS\Serializer\Serializer */
         $serializer = $this->container->get('serializer');
+        $validator = $this->container->get('validator');
         
         if ($route == 'Metadata') {
-            $interceptor = new MetadataInterceptor($serializer);
+            $interceptor = new MetadataInterceptor();
+            $interceptor->add(new SerializerInterceptor($serializer));
+            $interceptor->add(new ValidatorInterceptor($validator));
             $response = $dispatcher->getMetadata($classes, $interceptor);
         }
         else if ($route == 'SaveChanges') {
