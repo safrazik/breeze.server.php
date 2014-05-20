@@ -1,6 +1,8 @@
 # breeze.server.php (Doctrine 2)
 
+<!--
 (Inspired by [breeze.server.java](https://github.com/Breeze/breeze.server.java))
+-->
 
 This project is a PHP library that facilitates building [Breeze](http://www.breezejs.com/)-compatible backends using
 [Doctrine](http://hibernate.org/orm/).
