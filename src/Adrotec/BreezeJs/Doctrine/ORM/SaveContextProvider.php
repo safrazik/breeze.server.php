@@ -7,6 +7,10 @@ use Adrotec\BreezeJs\Metadata\Metadata;
 use Adrotec\BreezeJs\Save\SaveBundle;
 use Adrotec\BreezeJs\Save\SaveResult;
 
+
+use Doctrine\Common\Persistence\Proxy;
+use Doctrine\ORM\Proxy\Proxy as ORMProxy;
+
 class SaveContextProvider {
 
     private $entityManager;
@@ -26,6 +30,13 @@ class SaveContextProvider {
 //        return $saveResult;
     }
 
+    function isProxyObject($object){
+        if ($object instanceof Proxy || $object instanceof ORMProxy) {
+            return true;
+        }
+        return false;
+    }
+    
     function setObjectValue($object, $property, $value, $setter = false) {
         if (!$setter) {
             $setter = 'set' . ucfirst($property);
@@ -35,12 +46,19 @@ class SaveContextProvider {
             return;
         }
         $refl = new \ReflectionObject($object);
-        if ($object instanceof \Doctrine\Common\Proxy\Proxy) {
+        if ($this->isProxyObject($object)) {
             $refl = $refl->getParentClass();
         }
         $prop = $refl->getProperty($property);
         $prop->setAccessible(true);
         $prop->setValue($object, $value);
+    }
+    
+    function getEntityClass($entity){
+        if($this->isProxyObject($entity)){
+            return get_parent_class($entity);
+        }
+        return get_class($entity);
     }
 
     function convertToDoctrineValue($string, $dataType) {
@@ -191,7 +209,7 @@ class SaveContextProvider {
                 'deleted' => false,
                 'validationErrors' => false,
             );
-            $entitiesModified[get_class($entity) . '_' . $entityModified['idValue']] = $entityModified;
+            $entitiesModified[$this->getEntityClass($entityModified['entity']) . '_' . $entityModified['idValue']] = $entityModified;
         }
 
         $keyMappings = array();
@@ -239,7 +257,7 @@ class SaveContextProvider {
                         $validationErrors = array();
                     }
                     $entitiesModified['validationErrors'] = $errors;
-                    $validationErrors[get_class($entityModified['entity']) . '_' . $entityModified['idValue']] = $errors;
+                    $validationErrors[$this->getEntityClass($entityModified['entity']) . '_' . $entityModified['idValue']] = $errors;
                 }
             }
 
@@ -254,13 +272,17 @@ class SaveContextProvider {
 //            return $entitiesModified; // so far, so good
 
             foreach ($entitiesModified as $entityModified) {
-
+                if($this->isProxyObject($entityModified['entity'])){
+                    if(!$entityModified['entity']->__isInitialized()){
+                            $entityModified['entity']->__load();
+                    }
+                }
                 if ($entityModified['state'] == 'Added' && $entityModified['idValue'] && method_exists($entityModified['entity'], $entityModified['idGetter'])) {
                     $realValue = $entityModified['entity']->{$entityModified['idGetter']}();
 
                     $tempValue = $entityModified['idValue'];
                     if ($tempValue != $realValue) {
-                        $keyMappings[get_class($entityModified['entity']) . '_' . $tempValue] = array(
+                        $keyMappings[$this->getEntityClass($entityModified['entity']) . '_' . $tempValue] = array(
 //                        $keyMappings[] = array(
                             'TempValue' => $tempValue,
                             'RealValue' => $realValue,
@@ -274,7 +296,13 @@ class SaveContextProvider {
 
         $keyMappings = array_values($keyMappings);
 
-        return array('Entities' => $entities, 'KeyMappings' => $keyMappings);
+        return array(
+            'obj' => $entities[15]->getId(),
+            'a' => get_class($entities[15]), 
+            'b' => json_decode(json_encode($entities[15])), 
+            'keys' => array_keys($entities),
+            
+            'Entities' => $entities, 'KeyMappings' => $keyMappings);
     }
 
 }
