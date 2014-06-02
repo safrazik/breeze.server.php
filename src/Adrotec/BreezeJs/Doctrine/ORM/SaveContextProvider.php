@@ -297,11 +297,6 @@ class SaveContextProvider {
         $keyMappings = array_values($keyMappings);
 
         return array(
-            'obj' => $entities[15]->getId(),
-            'a' => get_class($entities[15]), 
-            'b' => json_decode(json_encode($entities[15])), 
-            'keys' => array_keys($entities),
-            
             'Entities' => $entities, 'KeyMappings' => $keyMappings);
     }
 
