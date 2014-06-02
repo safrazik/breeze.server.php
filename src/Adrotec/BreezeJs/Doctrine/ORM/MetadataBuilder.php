@@ -23,6 +23,8 @@ class MetadataBuilder {
 
     private $entityManager;
     private $interceptor;
+    
+    private $associationNames = array();
 
     private function isInheritanceEnabled() {
         return true;
@@ -73,13 +75,7 @@ class MetadataBuilder {
 
 
         return $metadata;
-
-
-
     }
-
-
-
 
     function getNamespace(\ReflectionClass $class) {
         $namespace = null;
@@ -188,12 +184,12 @@ class MetadataBuilder {
         if (isset($fieldMapping['length'])) {
             $dataProperty->maxLength = $fieldMapping['length'];
         }
-        
+
         if ($this->isInheritanceEnabled()) {
             if (isset($fieldMapping['inherited'], $fieldMapping['declared']) && $fieldMapping['inherited']
             //&& $fieldMapping['declared'] != $classInfo->className
             ) {
-                if($this->interceptor){
+                if ($this->interceptor) {
                     $this->interceptor->excludeProperty($dataProperty);
                 }
                 return false;
@@ -232,8 +228,7 @@ class MetadataBuilder {
     function createNavigationProperty(StructuralType &$structuralType, $associationMapping) {
 //print_r($associationMapping);
 //exit;
-        $meta = $this->entityManager->getClassMetadata($associationMapping['sourceEntity']);
-        $associationMeta = $this->entityManager->getClassMetadata($associationMapping['targetEntity']);
+        $associationClass = new \ReflectionClass($associationMapping['targetEntity']);
 
         $navigationProperty = new NavigationProperty();
 
@@ -241,7 +236,7 @@ class MetadataBuilder {
 
         $navigationProperty->name = $associationMapping['fieldName'];
 
-        $navigationProperty->entityTypeName = $this->getEntityTypeName($associationMeta->getReflectionClass());
+        $navigationProperty->entityTypeName = $this->getEntityTypeName($associationClass);
 
         $navigationProperty->isScalar = in_array((int) $associationMapping['type'], array(ClassMetadata::ONE_TO_ONE, ClassMetadata::MANY_TO_ONE));
 
@@ -261,27 +256,32 @@ class MetadataBuilder {
             
         }
 
-        if ($navigationProperty->isScalar && $isOwningSide) {
-            $entityName = $structuralType !== null ? $structuralType->shortName : $meta->getReflectionClass()->getShortName();
-            $navigationProperty->associationName = 'FK_' . $entityName . '_' . $associationMeta->getReflectionClass()->getShortName();
+//        echo $isOwningSide ? 'OWNING' : 'INVERSE'; print_r($associationMapping);
+        
+        if ($isOwningSide) {
+//            $associationName = $structuralType->shortName . '_' . $associationMapping['fieldName']
+//                    . '__' . $associationClass->getShortName() . '_' . $associationMapping['inversedBy'];
+            $associationName = $structuralType->shortName.'_'.$associationClass->getShortName();
+            $key = 'OWNING';
         } else {
-            $addAssociationName = true;
-//            if (!$navigationProperty->isScalar && $this->isInheritanceEnabled()) {
-//                if ($associationMeta->inheritanceType == ClassMetadataInfo::INHERITANCE_TYPE_JOINED || $associationMeta->inheritanceType == ClassMetadataInfo::INHERITANCE_TYPE_SINGLE_TABLE) {
-//                    if (count($associationMeta->parentClasses)) {
-//                        if ($associationParentMeta = $this->entityManager->getClassMetadata($associationMeta->parentClasses[0])) {
-//                            $addAssociationName = false;
-//                            $navigationProperty->associationName = 'FK_' .
-//                                    $associationParentMeta->getReflectionClass()->getShortName() . '_' . $meta->getReflectionClass()->getShortName();
-//                        }
-//                    }
-//                }
-//            }
-            if ($addAssociationName) {
-                $navigationProperty->associationName = 'FK_' . $associationMeta->getReflectionClass()->getShortName()
-                        . '_' . $meta->getReflectionClass()->getShortName();
-            }
+//            $associationName = $associationClass->getShortName() . '_' . $associationMapping['mappedBy']
+//                    . '__' . $structuralType->shortName . '_' . $associationMapping['fieldName'];
+            $associationName = $associationClass->getShortName().'_'.$structuralType->shortName;
+            $key = 'INVERSE';
         }
+        
+        $key .= $associationName;
+        
+        if(!isset($this->associationNames[$key])){
+            $this->associationNames[$key] = 0;
+        }
+        
+        $this->associationNames[$key] += 1;
+        
+        $prefix = 'ASSOCIATION_';
+        $suffix = $this->associationNames[$key] > 1 ? '_'.$this->associationNames[$key] : '';
+
+        $navigationProperty->associationName = $prefix.$associationName.$suffix;
 
         return $navigationProperty;
     }
