@@ -21,20 +21,23 @@ class BreezeJsController extends Controller {
 
     public function apiAction($route) {
         
-        $dispatcher = new Dispatcher($this->getDoctrine()->getManager());
-        
-        $classes = $this->getClientClasses();
-        
         $response = null;
         /* @var $serializer \JMS\Serializer\Serializer */
         $serializer = $this->container->get('serializer');
         $validator = $this->container->get('validator');
         
+        $interceptor = new MetadataInterceptor();
+        $interceptor->add(new SerializerInterceptor($serializer));
+        $interceptor->add(new ValidatorInterceptor($validator));
+            
+        $dispatcher = new Dispatcher($this->getDoctrine()->getManager(), $interceptor);
+        
+        $classes = $this->getClientClasses();
+        
+        $dispatcher->setClasses($classes);
+        
         if ($route == 'Metadata') {
-            $interceptor = new MetadataInterceptor();
-            $interceptor->add(new SerializerInterceptor($serializer));
-            $interceptor->add(new ValidatorInterceptor($validator));
-            $response = $dispatcher->getMetadata($classes, $interceptor);
+            $response = $dispatcher->getMetadata();
         }
         else if ($route == 'SaveChanges') {
             if ($_SERVER['REQUEST_METHOD'] != 'POST') {
@@ -44,7 +47,7 @@ class BreezeJsController extends Controller {
             $response = $dispatcher->saveChanges($input);
         }
         else {
-            $response = $dispatcher->getResults($route, $_GET, $classes);
+            $response = $dispatcher->getResults($route, $_GET);
         }
         
         $response = $serializer->serialize($response, 'json');

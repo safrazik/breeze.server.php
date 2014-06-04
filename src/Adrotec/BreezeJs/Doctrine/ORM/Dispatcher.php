@@ -14,9 +14,17 @@ use Adrotec\BreezeJs\TextUtil;
 class Dispatcher {
 
     private $entityManager;
-
-    public function __construct(EntityManager $entityManager) {
+    private $interceptor;
+    private $classes;
+    
+    public function __construct(EntityManager $entityManager, MetadataInterceptorInterface $interceptor = null, array $classes = null) {
         $this->entityManager = $entityManager;
+        $this->interceptor = $interceptor;
+        $this->classes = $classes;
+    }
+    
+    public function setClasses(array $classes){
+        $this->classes = $classes;
     }
     
     protected function getClass($class){
@@ -27,12 +35,12 @@ class Dispatcher {
         return $class;
     }
 
-    public function getResults($resourceName, $params = null, array $classes = null) {
+    public function getResults($resourceName, $params = null) {
         $className = false;
-        if($classes === null){
-            $classes = $this->entityManager->getMetadataFactory()->getAllMetadata();
+        if($this->classes === null){
+            $this->classes = $this->entityManager->getMetadataFactory()->getAllMetadata();
         }
-        foreach ($classes as $class) {
+        foreach ($this->classes as $class) {
             if($class instanceof ClassMetadata){
                 $refl = $class->getReflectionClass();
             }
@@ -58,15 +66,15 @@ class Dispatcher {
     }
 
     public function saveChanges($saveBundleString) {
-        $saveService = new SaveService($this->entityManager);
+        $saveService = new SaveService($this->entityManager, $this->getMetadata());
         $saveBundle = $saveService->createSaveBundleFromString($saveBundleString);
         $result = $saveService->saveChanges($saveBundle);
         return $result;
     }
 
-    public function getMetadata(array $classes = null, MetadataInterceptorInterface $interceptor = null) {
-        $builder = new MetadataBuilder($this->entityManager, $interceptor);
-        $metadata = $builder->buildMetadata($classes);
+    public function getMetadata() {
+        $builder = new MetadataBuilder($this->entityManager, $this->interceptor);
+        $metadata = $builder->buildMetadata($this->classes);
         return $metadata;
     }
 

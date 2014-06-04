@@ -6,12 +6,14 @@ use Doctrine\ORM\EntityManager;
 use Adrotec\BreezeJs\Metadata\Metadata;
 use Adrotec\BreezeJs\Save\SaveBundle;
 use Adrotec\BreezeJs\Save\SaveResult;
-
-
 use Doctrine\Common\Persistence\Proxy;
 use Doctrine\ORM\Proxy\Proxy as ORMProxy;
 
 class SaveContextProvider {
+
+    const PROPERTY_TYPE_NONE = 0;
+    const PROPERTY_TYPE_PROPERTY = 1;
+    const PROPERTY_TYPE_NAVIGATION = 2;
 
     private $entityManager;
     private $metadata;
@@ -30,13 +32,13 @@ class SaveContextProvider {
 //        return $saveResult;
     }
 
-    function isProxyObject($object){
+    function isProxyObject($object) {
         if ($object instanceof Proxy || $object instanceof ORMProxy) {
             return true;
         }
         return false;
     }
-    
+
     function setObjectValue($object, $property, $value, $setter = false) {
         if (!$setter) {
             $setter = 'set' . ucfirst($property);
@@ -53,9 +55,9 @@ class SaveContextProvider {
         $prop->setAccessible(true);
         $prop->setValue($object, $value);
     }
-    
-    function getEntityClass($entity){
-        if($this->isProxyObject($entity)){
+
+    function getEntityClass($entity) {
+        if ($this->isProxyObject($entity)) {
             return get_parent_class($entity);
         }
         return get_class($entity);
@@ -116,12 +118,33 @@ class SaveContextProvider {
         return $fieldName;
     }
 
+    protected function getPropertyType(\Doctrine\ORM\Mapping\ClassMetadata $meta, $propertyName) {
+        if (!$this->metadata) {
+//            return self::PROPERTY_TYPE_NONE;
+        }
+        foreach ($this->metadata->structuralTypes as $structuralType) {
+            if ($structuralType->shortName == $meta->getReflectionClass()->getShortName()) {
+                foreach ($structuralType->dataProperties as $dataProperty) {
+                    if ($dataProperty->name == $propertyName) {
+                        return self::PROPERTY_TYPE_PROPERTY;
+                    }
+                }
+                foreach ($structuralType->navigationProperties as $navProperty) {
+                    if ($navProperty->name == $propertyName) {
+                        return self::PROPERTY_TYPE_NAVIGATION;
+                    }
+                }
+            }
+        }
+        return self::PROPERTY_TYPE_NONE;
+    }
+
     public function saveChangesTemp(SaveBundle $saveBundle) {
         $entitiesModified = array();
         $addedEntities = array();
-        
+
 //        print_r($saveBundle->getEntities()); exit;
-        
+
         foreach ($saveBundle->getEntities() as $i => $entityArr) {
             $entityAspect = $entityArr->entityAspect;
             unset($entityArr->entityAspect);
@@ -154,29 +177,41 @@ class SaveContextProvider {
             if ($entityAspect->entityState == 'Added') {
                 unset($entityArr->$idProperty);
                 $entity = new $className();
-            }
-            else if (isset($entityArr->$idProperty)) {
+            } else if (isset($entityArr->$idProperty)) {
                 $entity = $repository->find($entityArr->$idProperty);
             }
 
             $associations = array();
 
             if ($entityAspect->entityState == 'Modified' || $entityAspect->entityState == 'Added') {
-                foreach ($meta->fieldMappings as $propertyName => $fieldMapping) {
-                    if (property_exists($entityArr, $propertyName)) {
-                        $setter = false; //('set' . ucfirst($propertyName));
-                        $value = $entityArr->$propertyName;
-                        try {
-                            $value = $this->convertToDoctrineValue($value, $fieldMapping['type']);
-                        } catch (\Exception $e) {
-                            throw $e;
-                        }
-                        $this->setObjectValue($entity, $propertyName, $value, $setter);
+                foreach ($entityArr as $propertyName => $propertyValue) {
+                    $propertyType = $this->getPropertyType($meta, $propertyName);
+                    if ($propertyType === self::PROPERTY_TYPE_NONE) {
+                        continue;
                     }
+                    $fieldMapping = false;
+                    if (isset($meta->fieldMappings[$propertyName])) {
+                        $fieldMapping = $meta->fieldMappings[$propertyName];
+                    }
+                    $setter = false; //('set' . ucfirst($propertyName));
+                    $propertyValue = $entityArr->$propertyName;
+                    try {
+                        $propertyValue = $this->convertToDoctrineValue($propertyValue, 
+                                $fieldMapping ? $fieldMapping['type'] : 'string');
+                    } catch (\Exception $e) {
+                        throw $e;
+                    }
+                    $this->setObjectValue($entity, $propertyName, $propertyValue, $setter);
                 }
+//                foreach ($meta->fieldMappings as $propertyName => $fieldMapping) {
+//                    if (property_exists($entityArr, $propertyName)) {
+//                        
+//                    }
+//                }
                 foreach ($meta->associationMappings as $associationName => $associationFieldMapping) {
+//                    $associationFieldMapping = $meta->associationMappings[$propertyName];
                     $fkFieldName = $this->getForeignKeyFieldName($associationFieldMapping);
-                    if(!$fkFieldName){
+                    if (!$fkFieldName) {
                         $fkFieldName = $associationFieldMapping['fieldName'] . 'Id';
                     }
                     if (property_exists($entityArr, $fkFieldName)) {
@@ -265,16 +300,16 @@ class SaveContextProvider {
                 $this->entityManager->clear();
                 throw new ValidationException($validationErrors, 'Validation failed');
             }
-            
+
 //            print_r($entitiesModified); exit;
-            
+
             $this->entityManager->flush();
 //            return $entitiesModified; // so far, so good
 
             foreach ($entitiesModified as $entityModified) {
-                if($this->isProxyObject($entityModified['entity'])){
-                    if(!$entityModified['entity']->__isInitialized()){
-                            $entityModified['entity']->__load();
+                if ($this->isProxyObject($entityModified['entity'])) {
+                    if (!$entityModified['entity']->__isInitialized()) {
+                        $entityModified['entity']->__load();
                     }
                 }
                 if ($entityModified['state'] == 'Added' && $entityModified['idValue'] && method_exists($entityModified['entity'], $entityModified['idGetter'])) {
