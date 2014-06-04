@@ -51,9 +51,14 @@ class SaveContextProvider {
         if ($this->isProxyObject($object)) {
             $refl = $refl->getParentClass();
         }
-        $prop = $refl->getProperty($property);
-        $prop->setAccessible(true);
-        $prop->setValue($object, $value);
+        try {
+            $prop = $refl->getProperty($property);
+            $prop->setAccessible(true);
+            $prop->setValue($object, $value);
+        }
+        catch(\ReflectionException $e){
+            
+        }
     }
 
     function getEntityClass($entity) {
