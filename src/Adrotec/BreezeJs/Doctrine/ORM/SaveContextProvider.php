@@ -193,30 +193,21 @@ class SaveContextProvider {
             $associations = array();
 
             if ($entityAspect->entityState == 'Modified' || $entityAspect->entityState == 'Added') {
-                foreach ($entityArr as $propertyName => $propertyValue) {
-                    $propertyType = $this->getPropertyType($meta, $propertyName);
-                    if ($propertyType === self::PROPERTY_TYPE_NONE) {
-                        continue;
+                $processedProperties = array();
+                foreach ($meta->fieldMappings as $propertyName => $fieldMapping) {
+                    if (property_exists($entityArr, $propertyName)) {
+                        $setter = false; //('set' . ucfirst($propertyName));
+                        $propertyValue = $entityArr->$propertyName;
+                        try {
+                            $propertyValue = $this->convertToDoctrineValue($propertyValue, 
+                                    $fieldMapping ? $fieldMapping['type'] : 'string');
+                        } catch (\Exception $e) {
+                            throw $e;
+                        }
+                        $this->setObjectValue($entity, $propertyName, $propertyValue, $setter);
+                        $processedProperties[] = $propertyName;
                     }
-                    $fieldMapping = false;
-                    if (isset($meta->fieldMappings[$propertyName])) {
-                        $fieldMapping = $meta->fieldMappings[$propertyName];
-                    }
-                    $setter = false; //('set' . ucfirst($propertyName));
-                    $propertyValue = $entityArr->$propertyName;
-                    try {
-                        $propertyValue = $this->convertToDoctrineValue($propertyValue, 
-                                $fieldMapping ? $fieldMapping['type'] : 'string');
-                    } catch (\Exception $e) {
-                        throw $e;
-                    }
-                    $this->setObjectValue($entity, $propertyName, $propertyValue, $setter);
                 }
-//                foreach ($meta->fieldMappings as $propertyName => $fieldMapping) {
-//                    if (property_exists($entityArr, $propertyName)) {
-//                        
-//                    }
-//                }
                 foreach ($meta->associationMappings as $associationName => $associationFieldMapping) {
 //                    $associationFieldMapping = $meta->associationMappings[$propertyName];
                     $fkFieldName = $this->getForeignKeyFieldName($associationFieldMapping);
@@ -232,8 +223,22 @@ class SaveContextProvider {
                             'referencedFieldValue' => $entityArr->$fkFieldName,
                             'setter' => $associationSetter,
                         );
+                        $processedProperties[] = $fkFieldName;
                     }
                 }
+                foreach ($entityArr as $propertyName => $propertyValue) {
+                    if(in_array($propertyName, $processedProperties)){
+                        continue;
+                    }
+                    $propertyType = $this->getPropertyType($meta, $propertyName);
+                    if ($propertyType === self::PROPERTY_TYPE_NONE) {
+                        continue;
+                    }
+                    $setter = false; //('set' . ucfirst($propertyName));
+                    $propertyValue = $entityArr->$propertyName;
+                    $this->setObjectValue($entity, $propertyName, $propertyValue, $setter);
+                }
+
             } else if ($entityAspect->entityState == 'Deleted') {
                 
             } else {
