@@ -129,14 +129,18 @@ class SaveContextProvider {
         }
         foreach ($this->metadata->structuralTypes as $structuralType) {
             if ($structuralType->shortName == $meta->getReflectionClass()->getShortName()) {
-                foreach ($structuralType->dataProperties as $dataProperty) {
-                    if ($dataProperty->name == $propertyName) {
-                        return self::PROPERTY_TYPE_PROPERTY;
+                if($structuralType->dataProperties) {
+                    foreach ($structuralType->dataProperties as $dataProperty) {
+                        if ($dataProperty->name == $propertyName) {
+                            return self::PROPERTY_TYPE_PROPERTY;
+                        }
                     }
                 }
-                foreach ($structuralType->navigationProperties as $navProperty) {
-                    if ($navProperty->name == $propertyName) {
-                        return self::PROPERTY_TYPE_NAVIGATION;
+                if($structuralType->navigationProperties){
+                    foreach ($structuralType->navigationProperties as $navProperty) {
+                        if ($navProperty->name == $propertyName) {
+                            return self::PROPERTY_TYPE_NAVIGATION;
+                        }
                     }
                 }
             }
