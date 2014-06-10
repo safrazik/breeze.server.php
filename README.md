@@ -33,7 +33,8 @@ Currently, only a subset of the [OData protocol specification](http://www.odata.
     - Arithmetic Operators NOT supported (add, sub, mul, div, mod)
     - Grouping supported (e.g: $filter=(Price sub 5) gt 10)
     - All String Functions supported, except `replace`
-   
+    - date functions NOT supported
+    - math functions NOT supported
 
 
 TODO: add examples
