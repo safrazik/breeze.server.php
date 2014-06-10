@@ -5,16 +5,36 @@
 -->
 
 This project is a PHP library that facilitates building [Breeze](http://www.breezejs.com/)-compatible backends using
-[Doctrine](http://hibernate.org/orm/).
+[Doctrine](http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/).
 
 ### Features:
 
 - Generates [Breeze metadata](http://www.breezejs.com/documentation/metadata) from Doctrine mappings
-- Parses (a subset of) [OData](http://www.odata.org/documentation/odata-version-3-0/url-conventions/) queries into [QueryBuilder](http://docs.doctrine-project.org/en/2.0.x/reference/query-builder.html) instance
+- Parses (a subset of) [OData](http://www.odata.org/documentation/odata-version-3-0/url-conventions/) queries into [QueryBuilder](http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/query-builder.html) instance
 - Executes queries using Doctrine Entity Manager
 - Expands graphs of related entites using EAGER loading with joins
 - Serializes query results to [JSON](http://www.json.org/) with [JMSSerializer](http://jmsyst.com/libs/serializer)
 - Handles saving Breeze payloads in Doctrine
+
+#### OData Grammar
+
+Currently, only a subset of the [OData protocol specification](http://www.odata.org/documentation/odata-version-3-0/odata-version-3-0-core-protocol/) is handled.
+
+- **$orderby**: supported
+- **$top**: supported
+- **$skip**: supported
+- **$inlinecount**: supported
+- **$select**: supported
+- **$format**: not supported, always returns JSON
+- **$links**: not supported
+- **$count**: not supported
+- **$filter**: 
+    - All Logical Operators supported (eq, ne, gt, ge, lt, le, and, or, not)
+    - Arithmetic Operators NOT supported (add, sub, mul, div, mod)
+    - Grouping supported (e.g: $filter=(Price sub 5) gt 10)
+    - All String Functions supported, except `replace`
+   
+
 
 TODO: add examples
 
