@@ -37,7 +37,7 @@ Currently, only a subset of the [OData protocol specification](http://www.odata.
     - math functions NOT supported
 
 ## Example
-   [](https://github.com/adrotec/breeze.server.php.demo)
+   [https://github.com/adrotec/breeze.server.php.demo](https://github.com/adrotec/breeze.server.php.demo)
 
 ## Usage
 
