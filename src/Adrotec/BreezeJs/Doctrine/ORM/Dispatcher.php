@@ -23,7 +23,7 @@ class Dispatcher {
         $this->classes = $classes;
     }
     
-    public function setClasses(array $classes){
+    public function setClasses(array $classes = null){
         $this->classes = $classes;
     }
     
