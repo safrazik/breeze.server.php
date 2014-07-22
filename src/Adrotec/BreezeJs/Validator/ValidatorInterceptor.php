@@ -7,7 +7,7 @@ use Adrotec\BreezeJs\Metadata\Property;
 use Adrotec\BreezeJs\Metadata\DataProperty;
 use Adrotec\BreezeJs\Metadata\NavigationProperty;
 use Adrotec\BreezeJs\Validator\ValidatorInterceptorInterface;
-use Symfony\Component\Validator\Validator;
+use Symfony\Component\Validator\ValidatorInterface;
 use Adrotec\BreezeJs\Validator\ValidatorConstraintConverter as Converter;
 
 use Adrotec\BreezeJs\Metadata\Validator as MetaValidator;
@@ -16,7 +16,7 @@ class ValidatorInterceptor implements ValidatorInterceptorInterface {
 
     private $validatorMetadataFactory;
 
-    public function __construct(Validator $validator) {
+    public function __construct(ValidatorInterface $validator) {
         $this->validatorMetadataFactory = $validator->getMetadataFactory();
     }
 
