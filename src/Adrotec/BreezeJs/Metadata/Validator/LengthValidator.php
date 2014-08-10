@@ -2,7 +2,7 @@
 
 namespace Adrotec\BreezeJs\Metadata\Validator;
 
-use Adro\WebApi\Metadata\Validator;
+use Adrotec\BreezeJs\Metadata\Validator\Validator;
 use JMS\Serializer\Annotation\ExclusionPolicy;
 use JMS\Serializer\Annotation\SerializedName;
 
@@ -14,7 +14,7 @@ class LengthValidator {
     /**
      * @SerializedName("name")
      */
-    public $name = Validator::STRING_LENGTH;
+    public $name = Validator::MAX_LENGTH;
 
     /**
      * @SerializedName("minLength")
