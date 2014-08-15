@@ -34,6 +34,14 @@ class MetadataBuilder {
         $this->entityManager = $entityManager;
         $this->interceptor = $interceptor;
     }
+    
+    /**
+     * 
+     * @return MetadataInterceptorInterface
+     */
+    public function getInterceptor(){
+        return $this->interceptor;
+    }
 
     public function getEntityTypeName(\ReflectionClass $class) {
         return $class->getShortName() . ':#' . $this->getNamespace($class);
