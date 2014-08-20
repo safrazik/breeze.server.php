@@ -2,7 +2,21 @@
 
 namespace Adrotec\BreezeJs\Serializer;
 
+//use Doctrine\Common\Annotations\AnnotationRegistry;
+
+use JMS\Serializer\Annotation as Serializer;
+
 class SerializerBuilder {
+
+    private static function autoloadAnnotations(){
+        // fix for Doctrine annotations for serializers to work
+        new Serializer\ExclusionPolicy(array('value' => 'none'));
+        new Serializer\ReadOnly();
+        new Serializer\Exclude();
+        new Serializer\AccessType();
+        new Serializer\Accessor();
+        new Serializer\ReadOnly();
+    }
 
     /**
      * 
@@ -11,6 +25,8 @@ class SerializerBuilder {
      */
     public static function create(\Doctrine\ORM\EntityManager $entityManager) {
 
+        self::autoloadAnnotations();
+        
         $builder = \JMS\Serializer\SerializerBuilder::create();
         $propertyNamingStrategy = new \Adrotec\BreezeJs\Serializer\CamelCaseNamingStrategy();
 //$propertyNamingStrategy = new \JMS\Serializer\Naming\CamelCaseNamingStrategy();
