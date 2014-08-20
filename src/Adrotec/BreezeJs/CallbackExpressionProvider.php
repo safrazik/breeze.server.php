@@ -4,33 +4,12 @@ namespace Adrotec\BreezeJs;
 
 use ODataProducer\UriProcessor\QueryProcessor\ExpressionParser\Expressions\ExpressionType;
 use ODataProducer\Providers\Metadata\Type\IType;
-//use ODataProducer\Common\NotImplementedException;
 use ODataProducer\Common\ODataConstants;
 use ODataProducer\UriProcessor\QueryProcessor\ExpressionParser\IExpressionProvider;
 use ODataProducer\Providers\Metadata\ResourceType as OResourceType;
 
 class CallbackExpressionProvider implements IExpressionProvider {
-//
-//	const ADD = '+';
-//	const CLOSE_BRACKET = ')';
-//	const COMMA = ',';
-//	const DIVIDE = '/';
-//	const SUBTRACT = '-';
-//	const EQUAL = '=';
-//	const GREATERTHAN = '>';
-//	const GREATERTHAN_OR_EQUAL = '>=';
-//	const LESSTHAN = '<';
-//	const LESSTHAN_OR_EQUAL = '<=';
-//	const LOGICAL_AND = '&&';
-//	const LOGICAL_NOT = '!';
-//	const LOGICAL_OR = '||';
-//	const MEMBERACCESS = '';
-//	const MODULO = '%';
-//	const MULTIPLY = '*';
-//	const NEGATE = '-';
-//	const NOTEQUAL = '!=';
-//	const OPEN_BRAKET = '(';
-
+    
     const ADD = 'arithmeticAdd';
     const CLOSE_BRACKET = ')';
     const COMMA = ',';
@@ -264,8 +243,6 @@ class CallbackExpressionProvider implements IExpressionProvider {
         } while ($parent != null);
 
         $variable = rtrim($variable, self::MEMBERACCESS);
-//        $variable = self::MEMBERACCESS . $variable;
-//        exit($variable);
         return $this->_iterName.'getProperty(\'' . $variable . '\')';
     }
 
@@ -364,8 +341,6 @@ class CallbackExpressionProvider implements IExpressionProvider {
     }
 
     private function _prepareBinaryExpression($operator, $left, $right) {
-//echo '"'.$left.'", "'.$right.'"'.'<br>';
-//exit;
         // Special handling for DATETIMECMP
         if (false && !substr_compare($left, self::DATETIME_COMPARE, 0, strlen(self::DATETIME_COMPARE))) {
             $str = explode(';', $left, 2);
@@ -376,9 +351,6 @@ class CallbackExpressionProvider implements IExpressionProvider {
         }
 
         return $this->_iterName.$operator.self::OPEN_BRAKET.$left.self::COMMA.$right.self::CLOSE_BRACKET;
-//				self::OPEN_BRAKET
-//				. $left . ' ' . $operator
-//				. ' ' . $right . self::CLOSE_BRACKET;
                 "\r\n" . $operator . self::OPEN_BRAKET
                 . $left . ', '// . $operator
                 . ' ' . $right . self::CLOSE_BRACKET . "\r\n";
@@ -394,7 +366,6 @@ class CallbackExpressionProvider implements IExpressionProvider {
      */
     private function _prepareUnaryExpression($operator, $child) {
         return $this->_iterName.$operator.self::OPEN_BRAKET.$child.self::CLOSE_BRACKET;
-//        return $operator . self::OPEN_BRAKET . $child . self::CLOSE_BRACKET;
     }
 
 }
