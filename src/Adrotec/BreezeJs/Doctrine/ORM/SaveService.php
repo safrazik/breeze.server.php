@@ -14,14 +14,18 @@ use Adrotec\BreezeJs\Metadata\Metadata;
 
 use Adrotec\BreezeJs\Save\SaveBundle;
 
+use Adrotec\BreezeJs\MetadataInterceptorInterface;
+
 class SaveService {
     
     private $entityManager;
     private $metadata;
+    private $interceptor;
 
-    public function __construct(EntityManager $entityManager, Metadata $metadata = null) {
+    public function __construct(EntityManager $entityManager, Metadata $metadata = null, MetadataInterceptorInterface $interceptor) {
         $this->entityManager = $entityManager;
         $this->metadata = $metadata;
+        $this->interceptor = $interceptor;
     }
     
     public function createSaveBundleFromString($saveBundleString){
@@ -35,7 +39,7 @@ class SaveService {
         if(!$saveBundle instanceof SaveBundle){
             $saveBundle = $this->createSaveBundleFromString($saveBundle);
         }
-        $context = new SaveContextProvider($this->entityManager, $this->metadata);
+        $context = new SaveContextProvider($this->entityManager, $this->metadata, $this->interceptor);
         $saveResult = $context->saveChanges($saveBundle);
         return $saveResult;
     }

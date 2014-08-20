@@ -2,7 +2,6 @@
 
 namespace Adrotec\BreezeJs\Serializer;
 
-use Adrotec\BreezeJs\MetadataInterceptorInterface;
 use Adrotec\BreezeJs\Metadata\StructuralType;
 use Adrotec\BreezeJs\Metadata\Property;
 use Adrotec\BreezeJs\Metadata\NavigationProperty;
@@ -11,7 +10,7 @@ use JMS\Serializer\Serializer;
 use Adrotec\BreezeJs\Doctrine\ORM\DataTypeMapper;
 use Adrotec\BreezeJs\TextUtil;
 
-class MetadataInterceptor implements MetadataInterceptorInterface {
+class MetadataInterceptor {
 
     private $serializer;
     private $metaFactory;

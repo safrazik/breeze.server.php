@@ -17,10 +17,12 @@ class SaveContextProvider {
 
     private $entityManager;
     private $metadata;
+    private $interceptor;
 
-    public function __construct(EntityManager $entityManager, Metadata $metadata = null) {
+    public function __construct(EntityManager $entityManager, Metadata $metadata = null, $interceptor = null) {
         $this->entityManager = $entityManager;
         $this->metadata = $metadata;
+        $this->interceptor = $interceptor;
     }
 
     public function saveChanges(SaveBundle $saveBundle) {
@@ -146,6 +148,30 @@ class SaveContextProvider {
             }
         }
         return self::PROPERTY_TYPE_NONE;
+    }
+    
+    public function validateEntity($entity){
+        if($this->interceptor){
+            return $this->interceptor->validateEntity($entity);
+        }
+    }
+    
+    protected function formatErrors($errors, $entity, $idValue){
+        /* @var $errors \Symfony\Component\Validator\ConstraintViolationList */
+        $validationErrors = array();
+        $converter = new \Adrotec\BreezeJs\Validator\ValidatorConstraintConverter();
+        foreach($errors as $error){
+            /* @var $error \Symfony\Component\Validator\ConstraintViolation */
+            $validationErrors[] = array(
+//                'ErrorName' => 'HELY:'.var_export($error->getCode(), true),
+                'ErrorName' => $converter->convert($error->getConstraint()),
+                'ErrorMessage' => $error->getMessage(),
+                'PropertyName' => $error->getPropertyPath(),
+                'EntityTypeName' => strtr(get_class($entity), '\\', '.'),
+                'KeyValues' => $idValue,
+            );
+        }
+        return $validationErrors;
     }
 
     public function saveChangesTemp(SaveBundle $saveBundle) {
@@ -300,18 +326,25 @@ class SaveContextProvider {
                 }
                 $entitiesModified[$key] = $entityModified;
 
-                $errors = array();
-                if (count($errors) > 0) {
+                $errors = $this->validateEntity($entityModified['entity']);
+                if ($errors && count($errors) > 0) {
                     if (!is_array($validationErrors)) {
                         $validationErrors = array();
                     }
-                    $entitiesModified['validationErrors'] = $errors;
-                    $validationErrors[$this->getEntityClass($entityModified['entity']) . '_' . $entityModified['idValue']] = $errors;
+//                    $entitiesModified['validationErrors'] = $errors;
+                    $validationErrors = array_merge($validationErrors, 
+                            $this->formatErrors($errors, $entityModified['entity'], $entityModified['idValue']));
+//                    $validationErrors[$this->getEntityClass($entityModified['entity']) . '_' . $entityModified['idValue']] = $errors;
                 }
             }
 
             if ($validationErrors) {
                 $this->entityManager->clear();
+                return array(
+                    'Errors' => $validationErrors,
+                );
+                print_r($validationErrors);
+                exit;
                 throw new ValidationException($validationErrors, 'Validation failed');
             }
 

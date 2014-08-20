@@ -66,7 +66,7 @@ class Dispatcher {
     }
 
     public function saveChanges($saveBundleString) {
-        $saveService = new SaveService($this->entityManager, $this->getMetadata());
+        $saveService = new SaveService($this->entityManager, $this->getMetadata(), $this->interceptor);
         $saveBundle = $saveService->createSaveBundleFromString($saveBundleString);
         $result = $saveService->saveChanges($saveBundle);
         return $result;

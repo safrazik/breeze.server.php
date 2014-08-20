@@ -57,4 +57,8 @@ class MetadataInterceptor implements MetadataInterceptorInterface {
         $this->delegate(__FUNCTION__, array(&$structuralType), false);
     }
 
+    public function validateEntity($entity) {
+        return $this->delegate(__FUNCTION__, array($entity));
+    }
+
 }

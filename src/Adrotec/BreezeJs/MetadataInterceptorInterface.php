@@ -20,4 +20,6 @@ interface MetadataInterceptorInterface {
     
     function excludeProperty(Property $property);
     
+    function validateEntity($entity);
+    
 }
