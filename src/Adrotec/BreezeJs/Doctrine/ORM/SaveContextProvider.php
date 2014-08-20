@@ -311,7 +311,9 @@ class SaveContextProvider {
                         }
                     }
                 }
+                $errors = false;
                 if ($entityModified['state'] == 'Added' || $entityModified['state'] == 'Modified') {
+                    $errors = $this->validateEntity($entityModified['entity']);
                     if ($entityModified['entity']) {
                         $this->entityManager->persist($entityModified['entity']);
                         $entityModified['persisted'] = true;
@@ -326,7 +328,6 @@ class SaveContextProvider {
                 }
                 $entitiesModified[$key] = $entityModified;
 
-                $errors = $this->validateEntity($entityModified['entity']);
                 if ($errors && count($errors) > 0) {
                     if (!is_array($validationErrors)) {
                         $validationErrors = array();
