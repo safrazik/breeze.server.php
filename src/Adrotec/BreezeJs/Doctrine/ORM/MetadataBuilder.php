@@ -291,6 +291,17 @@ class MetadataBuilder {
 
         $navigationProperty->associationName = $prefix.$associationName.$suffix;
 
+        if ($this->isInheritanceEnabled()) {
+            if (isset($associationMapping['inherited'], $associationMapping['declared']) && $associationMapping['inherited']
+            //&& $fieldMapping['declared'] != $classInfo->className
+            ) {
+                if ($this->interceptor) {
+                    $this->interceptor->excludeProperty($navigationProperty);
+                }
+                return false;
+            }
+        }
+        
         return $navigationProperty;
     }
 
