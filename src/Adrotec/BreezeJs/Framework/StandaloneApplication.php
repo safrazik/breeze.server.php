@@ -72,6 +72,7 @@ class StandaloneApplication extends Application implements StandaloneApplication
     {
         $driverChain = new MappingDriverChain();
         $config = Setup::createConfiguration($this->debugEnabled);
+        $useSimpleAnnotationReader = false;
 
         foreach ($this->mappings as $key => $mapping) {
             $driver = null;
@@ -88,7 +89,6 @@ class StandaloneApplication extends Application implements StandaloneApplication
                     $driver = new YamlDriver(array($mapping['doctrine']));
                 }
             } else if ($mapping['type'] == 'annotation') {
-                $useSimpleAnnotationReader = false;
                 $paths = array();
                 if (isset($mapping['doctrine'])) {
                     $paths[] = $mapping['doctrine'];
@@ -99,8 +99,10 @@ class StandaloneApplication extends Application implements StandaloneApplication
                 $driverChain->addDriver($driver, $mapping['namespace']);
             }
         }
-
-//        $driverChain  = $driver;
+        // default to annotations
+        if(empty($this->mappings)){
+            $driverChain = $config->newDefaultAnnotationDriver(array(), $useSimpleAnnotationReader);
+        }
 
         $config->setMetadataDriverImpl($driverChain);
 
