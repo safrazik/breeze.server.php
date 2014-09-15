@@ -161,13 +161,14 @@ class SaveContextProvider {
         $validationErrors = array();
         $converter = new \Adrotec\BreezeJs\Validator\ValidatorConstraintConverter();
         foreach($errors as $error){
+            $errorName = '';
             if(method_exists($error, 'getConstraint')){
-                break;
+                $errorName = $converter->convert($error->getConstraint());
             }
             /* @var $error \Symfony\Component\Validator\ConstraintViolation */
             $validationErrors[] = array(
 //                'ErrorName' => 'HELY:'.var_export($error->getCode(), true),
-                'ErrorName' => $converter->convert($error->getConstraint()),
+                'ErrorName' => $errorName,
                 'ErrorMessage' => $error->getMessage(),
                 'PropertyName' => $error->getPropertyPath(),
                 'EntityTypeName' => strtr(get_class($entity), '\\', '.'),
