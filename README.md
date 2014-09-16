@@ -42,7 +42,7 @@ Some of the [Doctrine Types](http://doctrine-dbal.readthedocs.org/en/latest/refe
 * Other data types fall back to `String`
   
 ### [JMS Serializer](http://jmsyst.com/libs/serializer)
- a powerful serialization library for PHP. Provides more control over your serialized results. e.g: if you want to exclude a property from returned results, you may use the [@Exclude](http://jmsyst.com/libs/serializer/master/reference/annotations#exclude) annotation. Read the [documentation](http://jmsyst.com/libs/serializer) find more
+ a powerful serialization library for PHP. Provides more control over your serialized results. e.g: if you want to exclude a property from returned results, you may use the [@Exclude](http://jmsyst.com/libs/serializer/master/reference/annotations#exclude) annotation. Read the [documentation](http://jmsyst.com/libs/serializer) to find out more.
 
 ### [Symfony Validator Component](http://symfony.com/components/Validator)
 
