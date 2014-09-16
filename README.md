@@ -63,8 +63,10 @@ Some of the [Validation Constraints](http://symfony.com/doc/current/reference/co
 
 
 
-## Example
-   [https://github.com/adrotec/breeze.server.php.demo](https://github.com/adrotec/breeze.server.php.demo)
+## Example/Demo
+
+- **Featured** - [EmpDirectory sample application](https://github.com/adrotec/emp-directory)
+- **Basic** - [https://github.com/adrotec/breeze.server.php.demo](https://github.com/adrotec/breeze.server.php.demo)
 
 ## Installation
 
@@ -104,6 +106,8 @@ $app->addResources(array(
     'Departments' => 'EmpDirectory\Model\Department',
     'Jobs' => 'EmpDirectory\Model\Job',
 ));
+
+/* @var $request instanceof \Symfony\Component\HttpFoundation\Request */
 
 $response = $app->handle($request);
 ```
