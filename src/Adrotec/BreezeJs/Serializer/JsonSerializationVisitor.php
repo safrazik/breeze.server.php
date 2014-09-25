@@ -27,6 +27,14 @@ class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor 
         return parent::visitProperty($propertyMetadata, $data, $context);
     }
 
+    private function isProxyObject($object)
+    {
+        if ($object instanceof Proxy || $object instanceof ORMProxy) {
+            return true;
+        }
+        return false;
+    }
+
     public function endVisitingObject(JMSClassMetadata $metadata, $data, array $type, Context $context) {
         $rs = parent::endVisitingObject($metadata, $data, $type, $context);
         if (empty($rs)) {
@@ -46,17 +54,28 @@ class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor 
                     if(isset($rs[$foreignKey])){
                         continue;
                     }
-                            
+
                     $isScalar = in_array((int) $associationMapping['type'], array(ClassMetadata::ONE_TO_ONE, ClassMetadata::MANY_TO_ONE));
                     $isOwningSide = isset($associationMapping['isOwningSide']) ? $associationMapping['isOwningSide'] : false;
                     if (!($isScalar && $isOwningSide)) {
                         continue;
                     }
                     try {
-                        $refl = new \ReflectionObject($data);
-                        $prop = $refl->getProperty($associationMapping['fieldName']);
-                        $prop->setAccessible(true);
-                        $association = $prop->getValue($data);
+                        $getter = 'get' . $associationMapping['fieldName'];
+                        if (method_exists($data, $getter)) {
+                            $association = $data->$getter();
+                        } else {
+                            $refl = new \ReflectionClass($data);
+                            if ($this->isProxyObject($data)) {
+                                $refl = $refl->getParentClass();
+                            }
+                            try {
+                                $prop = $refl->getProperty($associationMapping['fieldName']);
+                                $prop->setAccessible(true);
+                                $association = $prop->getValue($data);
+                            } catch (\ReflectionException $e) {
+                            }
+                        }
                         if ($association) {
                             try {
                                 $id = $association->getId();
