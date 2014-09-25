@@ -8,6 +8,7 @@ use Adrotec\BreezeJs\Save\SaveBundle;
 use Adrotec\BreezeJs\Save\SaveResult;
 use Doctrine\Common\Persistence\Proxy;
 use Doctrine\ORM\Proxy\Proxy as ORMProxy;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 class SaveContextProvider {
 
@@ -253,6 +254,12 @@ class SaveContextProvider {
                             'referencedFieldValue' => $entityArr->$fkFieldName,
                             'setter' => $associationSetter,
                         );
+                        if($associationFieldMapping['isOwningSide'] && $associationFieldMapping['inversedBy']
+                                && in_array((int) $associationFieldMapping['type'], array(ClassMetadata::ONE_TO_ONE, ClassMetadata::MANY_TO_ONE))
+                                ){
+                            $associations[$fkFieldName]['isScalarInverse'] = $associationFieldMapping['type'] === ClassMetadata::ONE_TO_ONE;
+                            $associations[$fkFieldName]['inversedBy'] = $associationFieldMapping['inversedBy'];
+                        }
                         $processedProperties[] = $fkFieldName;
                     }
                 }
@@ -312,24 +319,27 @@ class SaveContextProvider {
                         }
                         if ($association !== false) {
                             $this->setObjectValue($entityModified['entity'], $associationData['fieldName'], $association, $associationData['setter']);
+                            if(isset($associationData['inversedBy'])){
+                                if($associationData['isScalarInverse']){
+                                    $this->setObjectValue($association, $associationData['inversedBy'], $entityModified['entity']);
+                                } else {
+                                    $inverseCollectionGetter = 'get'.$associationData['inversedBy'];
+                                    if(method_exists($association, $inverseCollectionGetter)){
+                                        $inverseCollection = $association->$inverseCollectionGetter();
+                                        if(is_object($inverseCollection) && method_exists($inverseCollection, 'add')){
+                                            if($entityModified['state'] == 'Added' &&
+                                                    !$inverseCollection->contains($entityModified['entity'])){
+                                                $inverseCollection->add($entityModified['entity']);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 $errors = false;
-                if ($entityModified['state'] == 'Added' || $entityModified['state'] == 'Modified') {
-                    $errors = $this->validateEntity($entityModified['entity']);
-                    if ($entityModified['entity']) {
-                        $this->entityManager->persist($entityModified['entity']);
-                        $entityModified['persisted'] = true;
-                    }
-                } else if ($entityModified['state'] == 'Deleted') {
-                    if ($entityModified['entity']) {
-                        $entityCopy = clone $entityModified['entity'];
-                        $this->entityManager->remove($entityModified['entity']);
-                        $entityModified['entity'] = $entityCopy;
-                        $entityModified['deleted'] = true;
-                    }
-                }
+
                 $entitiesModified[$key] = $entityModified;
 
                 if ($errors && count($errors) > 0) {
@@ -354,6 +364,23 @@ class SaveContextProvider {
             }
 
 //            print_r($entitiesModified); exit;
+            
+            foreach ($entitiesModified as $key => $entityModified){
+                if ($entityModified['state'] == 'Added' || $entityModified['state'] == 'Modified') {
+                    $errors = $this->validateEntity($entityModified['entity']);
+                    if ($entityModified['entity']) {
+                        $this->entityManager->persist($entityModified['entity']);
+                        $entityModified['persisted'] = true;
+                    }
+                } else if ($entityModified['state'] == 'Deleted') {
+                    if ($entityModified['entity']) {
+                        $entityCopy = clone $entityModified['entity'];
+                        $this->entityManager->remove($entityModified['entity']);
+                        $entityModified['entity'] = $entityCopy;
+                        $entityModified['deleted'] = true;
+                    }
+                }
+            }
 
             $this->entityManager->flush();
 //            return $entitiesModified; // so far, so good
