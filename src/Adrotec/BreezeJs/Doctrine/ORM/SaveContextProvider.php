@@ -103,6 +103,21 @@ class SaveContextProvider {
                 return $string;
         }
     }
+    
+    protected function getNamespace(\ReflectionClass $class) {
+        $namespace = null;
+        if ($this->interceptor) {
+            $namespace = $this->interceptor->getNamespace($class);
+        }
+        if (!$namespace) {
+            $namespace = $class->getNamespaceName();
+        }
+        return strtr($namespace, '\\', '.');
+    }
+    
+    protected function getEntityTypeName(\ReflectionClass $class) {
+        return $class->getShortName() . ':#' . $this->getNamespace($class);
+    }
 
     public function getForeignKeyFieldName(array $associationMapping) {
         $fieldName = false;
@@ -115,21 +130,20 @@ class SaveContextProvider {
                         $fieldName = $fieldMapping['fieldName'];
                     }
                 }
-                if (!$fieldName) {
-//                    if($this->interceptor){
-//                        $this->interceptor->createVirtualForeignKeyProperty($navigationProperty);
-//                    }
-//                    $fieldName = $this->createForeignKeyFieldName($associationMapping['fieldName']);
-                }
+            }
+        }
+        if (!$fieldName) {
+            if($this->interceptor){
+                $navigationProperty = new \Adrotec\BreezeJs\Metadata\NavigationProperty();
+                $navigationProperty->name = $associationMapping['fieldName'];
+                $navigationProperty->entityTypeName = $this->getEntityTypeName(new \ReflectionClass($associationMapping['targetEntity']));
+                $fieldName = $this->interceptor->createVirtualForeignKeyProperty($navigationProperty);
             }
         }
         return $fieldName;
     }
 
     protected function getPropertyType(\Doctrine\ORM\Mapping\ClassMetadata $meta, $propertyName) {
-        if (!$this->metadata) {
-//            return self::PROPERTY_TYPE_NONE;
-        }
         foreach ($this->metadata->structuralTypes as $structuralType) {
             if ($structuralType->shortName == $meta->getReflectionClass()->getShortName()) {
                 if($structuralType->dataProperties) {
@@ -168,7 +182,6 @@ class SaveContextProvider {
             }
             /* @var $error \Symfony\Component\Validator\ConstraintViolation */
             $validationErrors[] = array(
-//                'ErrorName' => 'HELY:'.var_export($error->getCode(), true),
                 'ErrorName' => $errorName,
                 'ErrorMessage' => $error->getMessage(),
                 'PropertyName' => $error->getPropertyPath(),
@@ -182,8 +195,6 @@ class SaveContextProvider {
     public function saveChangesTemp(SaveBundle $saveBundle) {
         $entitiesModified = array();
         $addedEntities = array();
-
-//        print_r($saveBundle->getEntities()); exit;
 
         foreach ($saveBundle->getEntities() as $i => $entityArr) {
             $entityAspect = $entityArr->entityAspect;
@@ -204,15 +215,7 @@ class SaveContextProvider {
             $idPropertyName = $idProperty;
             $idGetter = ('get' . ucfirst($idPropertyName));
             $idSetter = ('set' . ucfirst($idPropertyName));
-//            $idValue = false;
             $idValue = $entityArr->$idProperty;
-
-//            if (($entityAspect->entityState == 'Modified' || $entityAspect->entityState == 'Deleted') && isset($entityArr->$idProperty)) {
-//                $entity = $repository->find($entityArr->$idProperty);
-//            } else if ($entityAspect->entityState == 'Added') {
-//                unset($entityArr->$idProperty);
-//                $entity = new $className();
-//            }
 
             if ($entityAspect->entityState == 'Added') {
                 unset($entityArr->$idProperty);
@@ -227,7 +230,7 @@ class SaveContextProvider {
                 $processedProperties = array();
                 foreach ($meta->fieldMappings as $propertyName => $fieldMapping) {
                     if (property_exists($entityArr, $propertyName)) {
-                        $setter = false; //('set' . ucfirst($propertyName));
+                        $setter = false;
                         $propertyValue = $entityArr->$propertyName;
                         try {
                             $propertyValue = $this->convertToDoctrineValue($propertyValue, 
@@ -240,7 +243,6 @@ class SaveContextProvider {
                     }
                 }
                 foreach ($meta->associationMappings as $associationName => $associationFieldMapping) {
-//                    $associationFieldMapping = $meta->associationMappings[$propertyName];
                     $fkFieldName = $this->getForeignKeyFieldName($associationFieldMapping);
                     if (!$fkFieldName) {
                         $fkFieldName = $associationFieldMapping['fieldName'] . 'Id';
@@ -285,8 +287,6 @@ class SaveContextProvider {
                 'entity' => $entity,
                 'state' => $entityAspect->entityState,
                 'entityTypeName' => strtr($className, '\\', '.'),
-//                'idProperty' => $idProperty,
-//                'idPropertyName' => $idPropertyName,
                 'idGetter' => $idGetter,
                 'idSetter' => $idSetter,
                 'idValue' => $idValue ? $idValue : 0,
@@ -338,36 +338,21 @@ class SaveContextProvider {
                         }
                     }
                 }
-                $errors = false;
 
                 $entitiesModified[$key] = $entityModified;
 
-                if ($errors && count($errors) > 0) {
-                    if (!is_array($validationErrors)) {
-                        $validationErrors = array();
-                    }
-//                    $entitiesModified['validationErrors'] = $errors;
-                    $validationErrors = array_merge($validationErrors, 
-                            $this->formatErrors($errors, $entityModified['entity'], $entityModified['idValue']));
-//                    $validationErrors[$this->getEntityClass($entityModified['entity']) . '_' . $entityModified['idValue']] = $errors;
-                }
             }
-
-            if ($validationErrors) {
-                $this->entityManager->clear();
-                return array(
-                    'Errors' => $validationErrors,
-                );
-                print_r($validationErrors);
-                exit;
-                throw new ValidationException($validationErrors, 'Validation failed');
-            }
-
-//            print_r($entitiesModified); exit;
             
             foreach ($entitiesModified as $key => $entityModified){
                 if ($entityModified['state'] == 'Added' || $entityModified['state'] == 'Modified') {
                     $errors = $this->validateEntity($entityModified['entity']);
+                    if ($errors && count($errors) > 0) {
+                        if (!is_array($validationErrors)) {
+                            $validationErrors = array();
+                        }
+                        $validationErrors = array_merge($validationErrors, 
+                                $this->formatErrors($errors, $entityModified['entity'], $entityModified['idValue']));
+                    }
                     if ($entityModified['entity']) {
                         $this->entityManager->persist($entityModified['entity']);
                         $entityModified['persisted'] = true;
@@ -381,9 +366,15 @@ class SaveContextProvider {
                     }
                 }
             }
+            
+            if ($validationErrors) {
+                $this->entityManager->clear();
+                return array(
+                    'Errors' => $validationErrors,
+                );
+            }
 
             $this->entityManager->flush();
-//            return $entitiesModified; // so far, so good
 
             foreach ($entitiesModified as $entityModified) {
                 if ($this->isProxyObject($entityModified['entity'])) {
@@ -397,7 +388,6 @@ class SaveContextProvider {
                     $tempValue = $entityModified['idValue'];
                     if ($tempValue != $realValue) {
                         $keyMappings[$this->getEntityClass($entityModified['entity']) . '_' . $tempValue] = array(
-//                        $keyMappings[] = array(
                             'TempValue' => $tempValue,
                             'RealValue' => $realValue,
                             'EntityTypeName' => $entityModified['entityTypeName'],
