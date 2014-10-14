@@ -130,6 +130,10 @@ class Application implements ApplicationInterface
         return $this->addResources($resources);
     }
 
+    public function getResources(){
+        return $this->resources;
+    }
+
     public function getMetadata()
     {
         $builder = new MetadataBuilder($this->objectManager, $this->interceptor);
@@ -153,9 +157,8 @@ class Application implements ApplicationInterface
         return $result;
     }
 
-    public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    public function prepare()
     {
-//        sleep(2);
         $interceptor = new InterceptorChain();
         $serializerInterceptor = new SerializerInterceptor($this->serializer);
         $serializerInterceptor->setResources($this->resources);
@@ -165,33 +168,39 @@ class Application implements ApplicationInterface
             $interceptor->add(new ValidatorInterceptor($this->validator));
         }
         $this->interceptor = $interceptor;
+    }
 
+    public function getSerializedResponse($result)
+    {
+        $response = new Response();
+        $response->setContent($this->serializer->serialize($result, 'json'));
+        $response->headers->set('Content-Type', 'application/json');
+        return $response;
+    }
 
-        $path = $request->attributes->get('resource');
+    public function getResult(Request $request)
+    {
+        $resource = $request->attributes->get('resource');
 
-        if ($path == $this->metadataResource) {
-            $response = new Response();
-            $metadata = $this->getMetadata($interceptor);
-            $response->setContent($this->serializer->serialize($metadata, 'json'));
-            $response->headers->set('Content-Type', 'application/json');
-            return $response;
+        if ($resource == $this->metadataResource) {
+            return $this->getMetadata();
+        } else if ('POST' === $request->getMethod() && $resource == $this->saveChangesResource) {
+            return $this->saveChanges($request->getContent());
+        } else if (isset($this->resources[$resource])) {
+            $className = $this->resources[$resource];
+            return $this->getQueryResults($className, $request->query->all());
+        } else {
+            throw new ResourceNotFoundException('No resource found for "' . $resource . '"');
         }
-        if ('POST' === $request->getMethod() && $path == $this->saveChangesResource) {
-            $response = new Response();
-            $result = $this->saveChanges($request->getContent());
-            $response->setContent($this->serializer->serialize($result, 'json'));
-            $response->headers->set('Content-Type', 'application/json');
-            return $response;
-        }
-        if (isset($this->resources[$path])) {
-            $className = $this->resources[$path];
-            $response = new Response();
-            $result = $this->getQueryResults($className, $request->query->all());
-            $response->setContent($this->serializer->serialize($result, 'json'));
-            $response->headers->set('Content-Type', 'application/json');
-            return $response;
-        }
-        throw new ResourceNotFoundException('No resource found for "' . $path . '"');
+    }
+
+    public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
+    {
+        $this->prepare();
+        
+        $result = $this->getResult($request);
+
+        return $this->getSerializedResponse($result);
     }
 
 }
