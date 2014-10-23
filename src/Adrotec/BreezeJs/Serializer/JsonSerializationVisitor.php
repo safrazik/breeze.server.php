@@ -21,6 +21,10 @@ class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor 
     }
 
     public function visitProperty(PropertyMetadata $propertyMetadata, $data, Context $context) {
+        $v = $propertyMetadata->getValue($data);
+        if ($this->isProxyObject($v) && !$v->__isInitialized()) {
+            return;
+        }
         if (!$propertyMetadata->reflection) {
             return;
         }
