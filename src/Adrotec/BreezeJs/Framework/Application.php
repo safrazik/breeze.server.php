@@ -50,7 +50,7 @@ class Application implements ApplicationInterface
     protected $metadataResource = self::RESOURCE_METADATA_DEFAULT;
     protected $saveChangesResource = self::RESOURCE_SAVE_CHANGES_DEFAULT;
 
-    public function __construct(ObjectManager $objectManager = null, SerializerInterface $serializer = null, ValidatorInterface $validator = null)
+    public function __construct(ObjectManager $objectManager = null, SerializerInterface $serializer = null, $validator = null)
     {
         $this->objectManager = $objectManager;
         $this->serializer = $serializer;
