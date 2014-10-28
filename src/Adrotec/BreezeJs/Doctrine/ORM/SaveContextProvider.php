@@ -317,7 +317,7 @@ class SaveContextProvider {
                                 $association = null;
                             }
                         }
-                        if ($association !== false) {
+                        if ($association) {
                             $this->setObjectValue($entityModified['entity'], $associationData['fieldName'], $association, $associationData['setter']);
                             if(isset($associationData['inversedBy'])){
                                 if($associationData['isScalarInverse']){
