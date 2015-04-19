@@ -10,6 +10,7 @@ use Doctrine\ORM\Proxy\Proxy as ORMProxy;
 use JMS\Serializer\Context;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use Doctrine\ORM\EntityManager;
+use Adrotec\BreezeJs\Serializer\Context\SaveChangesContextInterface;
 
 class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor {
 
@@ -22,7 +23,8 @@ class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor 
 
     public function visitProperty(PropertyMetadata $propertyMetadata, $data, Context $context) {
         $v = $propertyMetadata->getValue($data);
-        if ($this->isProxyObject($v) && !$v->__isInitialized()) {
+        $isSaveChanges = $context instanceof SaveChangesContextInterface;
+        if ($this->isProxyObject($v) && ($isSaveChanges || !$v->__isInitialized())) {
             return;
         }
         if (!$propertyMetadata->reflection) {
@@ -45,7 +47,8 @@ class JsonSerializationVisitor extends \JMS\Serializer\JsonSerializationVisitor 
             return null;
         }
 
-        if (($data instanceof Proxy || $data instanceof ORMProxy) && !$data->__isInitialized()) {
+        $isSaveChanges = $context instanceof SaveChangesContextInterface;
+        if ($this->isProxyObject($data) && ($isSaveChanges || !$data->__isInitialized())) {
             return null;
         }
 
