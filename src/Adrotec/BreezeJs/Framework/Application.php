@@ -17,6 +17,10 @@ use Adrotec\BreezeJs\Serializer\SerializerBuilder;
 use Adrotec\BreezeJs\MetadataInterceptor as InterceptorChain;
 use Adrotec\BreezeJs\Validator\ValidatorInterceptor;
 
+use Adrotec\BreezeJs\Serializer\Context\QueryResultContext;
+use Adrotec\BreezeJs\Serializer\Context\MetadataContext;
+use Adrotec\BreezeJs\Serializer\Context\SaveChangesContext;
+
 class Application implements ApplicationInterface
 {
 
@@ -170,10 +174,14 @@ class Application implements ApplicationInterface
         $this->interceptor = $interceptor;
     }
 
-    public function getSerializedResponse($result)
+    public function getSerializedResponse($result, Request $request = null)
     {
+        $context = null;
+        if($request){
+            $context = $this->getSerializationContext($request);
+        }
         $response = new Response();
-        $response->setContent($this->serializer->serialize($result, 'json'));
+        $response->setContent($this->serializer->serialize($result, 'json', $context));
         $response->headers->set('Content-Type', 'application/json');
         return $response;
     }
@@ -194,13 +202,26 @@ class Application implements ApplicationInterface
         }
     }
 
+    protected function getSerializationContext(Request $request){
+        $context = null;
+        $resource = $request->attributes->get('resource');
+        if ($resource == $this->metadataResource) {
+            $context = new MetadataContext();
+        } else if ('POST' === $request->getMethod() && $resource == $this->saveChangesResource) {
+            $context = new SaveChangesContext();
+        } else if (isset($this->resources[$resource])) {
+            $context = new QueryResultContext();
+        }
+        return $context;
+    }
+
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
         $this->prepare();
         
         $result = $this->getResult($request);
 
-        return $this->getSerializedResponse($result);
+        return $this->getSerializedResponse($result, $request);
     }
 
 }
