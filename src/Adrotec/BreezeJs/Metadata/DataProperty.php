@@ -20,6 +20,7 @@ class DataProperty extends Property {
     public $defaultValue;
     public $isPartOfKey;
     public $maxLength;
+	public $isScalar;
 
     public function getDataTypeName() {
         return DataType::getName($this->dataType);

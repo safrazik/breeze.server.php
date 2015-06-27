@@ -192,6 +192,9 @@ class MetadataBuilder {
         if (isset($fieldMapping['length'])) {
             $dataProperty->maxLength = $fieldMapping['length'];
         }
+		if ($fieldMapping['type'] == 'array') {
+			$dataProperty->isScalar = false;
+		}
 
         if ($this->isInheritanceEnabled()) {
             if (isset($fieldMapping['inherited'], $fieldMapping['declared']) && $fieldMapping['inherited']
