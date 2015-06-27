@@ -75,6 +75,13 @@ class SaveContextProvider {
         if ($string === null) {
             return null;
         }
+        if(is_array($string)){
+            $output = array();
+            foreach ($string as $value) {
+                $output[] = $this->convertToDoctrineValue($value, $dataType);
+            }
+            return $output;
+        }
         switch ($dataType) {
             // integers
             case "smallint":
@@ -100,6 +107,7 @@ class SaveContextProvider {
             case "bigint":
             case "text":
             case "string":
+            default:
                 return $string;
         }
     }
