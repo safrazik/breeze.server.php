@@ -192,7 +192,7 @@ class MetadataBuilder {
         if (isset($fieldMapping['length'])) {
             $dataProperty->maxLength = $fieldMapping['length'];
         }
-		if ($fieldMapping['type'] == 'array') {
+		if (in_array($fieldMapping['type'], array('array', 'simple_array', 'json_array'))) {
 			$dataProperty->isScalar = false;
 		}
 
