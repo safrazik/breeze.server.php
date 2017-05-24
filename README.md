@@ -76,13 +76,11 @@ add these lines to your `composer.json` and run `composer update`
 
 ```json
     "require": {
-        "adrotec/breeze.server.php": "dev-master",
-        "symfony/validator": "dev-master"
-    },
-    "minimum-stability": "dev"
+        "adrotec/breeze.server.php": "dev-master"
+    }
 ```
 
-Please note that `"symfony/validator": "dev-master"` is required by `"adrotec/breeze.server.php"` since the library relies on [`ConstraintViolation::getConstraint()`](https://github.com/symfony/Validator/blob/master/ConstraintViolation.php#L199) method which is not (yet) available in the older versions. You may have to add `"minimum-stability": "dev"` to your `composer.json`
+Please note that `symfony/validator - 2.6+` is required by `"adrotec/breeze.server.php"` since the library relies on [`ConstraintViolation::getConstraint()`](https://github.com/symfony/Validator/blob/master/ConstraintViolation.php#L199) method which is not (yet) available in the older versions.
 
 ## Usage
 
