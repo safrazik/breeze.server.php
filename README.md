@@ -1,3 +1,8 @@
+# Project Status:  🚨 Unmaintained 🚨
+
+This project is no longer maintained. We will not be accepting pull requests, addressing issues, nor making future releases.
+
+
 # breeze.server.php
 
 This project is a PHP library that facilitates building [Breeze JS](http://www.breezejs.com/) compatible backends using
