@@ -5,6 +5,8 @@ This project is no longer maintained. We will not be accepting pull requests, ad
 
 # breeze.server.php
 
+Featured in [Official BreezeJS docs](https://breeze.github.io/doc-samples/php-employee-directory.html)
+
 This project is a PHP library that facilitates building [Breeze JS](http://www.breezejs.com/) compatible backends using
 [Doctrine](http://www.doctrine-project.org/projects/orm.html)
 
